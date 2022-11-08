@@ -24,7 +24,7 @@ public class ListUserById
         
         public async Task<User> Handle(ListUserByIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(user => user.Id==request.Id );
+            var user = await _context.Users.FirstOrDefaultAsync(user => int.Parse(user.Id)==request.Id );
             if (user==null)
             {
                 throw new Exception("user not found");

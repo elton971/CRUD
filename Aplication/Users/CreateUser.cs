@@ -1,6 +1,9 @@
+using Aplication.DTO;
+using AutoMapper;
 using Doiman;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
@@ -8,22 +11,27 @@ namespace Application.Users;
 
 public class CreateUser
 {
-    public class CreateUserCommand: IRequest<User>
+    public class CreateUserCommand: IRequest<UserDTO>
     {
-        public int Id { get; set; }
+      
         public string Name { get; set; }
-        public String Username { get; set; }
+        public string Username { get; set; }
         public string Password { get; set; }
 
+        public string Email { get; set; }
     }
     
-    public class CreateUserHandler: IRequestHandler<CreateUserCommand,User>
+    public class CreateUserHandler: IRequestHandler<CreateUserCommand,UserDTO>
     {
         private readonly DataContext _context;
+        private readonly UserManager<User> _userManager;
+        private readonly IMapper _mapper;
 
-        public CreateUserHandler(DataContext context)
+        public CreateUserHandler(DataContext context,UserManager<User> userManager,IMapper mapper)//UserManager ajuda na manipulacao do utilizador
         {
             _context = context;
+            _userManager = userManager;
+            _mapper = mapper;
         }
         
         public class  CreateUserValidator: AbstractValidator<CreateUserCommand>
@@ -33,14 +41,13 @@ public class CreateUser
                 RuleFor(x=>x.Name).NotEmpty();
                 RuleFor(x=>x.Username).NotEmpty();
                 RuleFor(x=>x.Password).NotEmpty();
-                
-                
+
             }
         }
         
-        public async Task<User> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        public async Task<UserDTO> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            var validator = await _context.Users.FirstOrDefaultAsync(user=>user.Username==request.Username,cancellationToken);
+            var validator = await _context.Users.FirstOrDefaultAsync(user=>user.UserName==request.Username,cancellationToken);
 
             if (validator!=null)
             {
@@ -49,22 +56,19 @@ public class CreateUser
 
             var user = new User()
             {
-                Name = request.Name,
-                Username = request.Username,
-                Password = request.Password
+                Fullname = request.Name,
+                UserName = request.Username,
+                Email=request.Email
             };
-
-            await _context.Users.AddAsync(user);
             
-            var result=await _context.SaveChangesAsync(cancellationToken)<0;
+            //incriptamos o passord e cria add na base de dados
+            var result=await _userManager.CreateAsync(user, request.Password);
 
-            if (result)
+            if (result.Succeeded)
             {
-                throw new Exception("Error creating user");
+                return _mapper.Map<User, UserDTO>(user);
             }
-
-            return user;
-
+            throw new Exception("Error creating user");
         }
     }
 

@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using Aplication.DTO;
 using Doiman;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,13 +9,13 @@ namespace Application.Users;
 
 public class ListUser
 {
-    public class ListUserQuery:IRequest<List<User>>
+    public class ListUserQuery:IRequest<List<UserDTO>>
     {
         
     }
    
     
-    public class ListUserQueryHandler: IRequestHandler<ListUserQuery,List<User>>
+    public class ListUserQueryHandler: IRequestHandler<ListUserQuery,List<UserDTO>>
     {
         private readonly DataContext _context;
 
@@ -22,9 +24,16 @@ public class ListUser
             _context = context;
         }
         
-        public async Task<List<User>> Handle(ListUserQuery request, CancellationToken cancellationToken)
+        public async Task<List<UserDTO>> Handle(ListUserQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Users.ToListAsync(cancellationToken);
+            var users= await _context.Users.ToListAsync(cancellationToken);
+            List<UserDTO> userDTOList;
+            userDTOList=users.Select(user=> new UserDTO
+            {
+                Id = int.Parse(user.Id),
+                Name = user.UserName
+            }).ToList();
+            return userDTOList;
         }
     }
 }

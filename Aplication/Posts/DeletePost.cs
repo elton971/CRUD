@@ -1,39 +1,40 @@
+﻿using Application.Users;
 using Doiman;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
-namespace Application.Users;
+namespace Aplication.Posts;
 
-public class DeleteUser
+public class DeletePost
 {
-    public class DeleteUserCommand: IRequest<User>
+    public class DeletePostCommand: IRequest<Post>
     {
         public int Id { get; set; }
     }
 
    
 
-    public class DeleteUserCommandHandler: IRequestHandler<DeleteUserCommand, User>
+    public class DeletePostCommandHandler: IRequestHandler<DeletePost.DeletePostCommand, Post>
     {
         private readonly DataContext _context;
 
-        public DeleteUserCommandHandler(DataContext context)
+        public DeletePostCommandHandler(DataContext context)
         {
             _context = context;
         }
         
-        public async Task<User> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        public async Task<Post> Handle(DeletePost.DeletePostCommand request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(user => int.Parse(user.Id) == request.Id);
+            var post = await _context.Post.FirstOrDefaultAsync(user => user.Id == request.Id);
 
-            if (user == null)
+            if (post == null)
             {
                 throw new Exception("User not found");
             }
             
             //here we remove de user on our database
-            _context.Users.Remove(user);
+            _context.Post.Remove(post);
             //we make commit and save the changes
             var delete = await _context.SaveChangesAsync(cancellationToken) <= 0;
              
@@ -42,7 +43,7 @@ public class DeleteUser
             {
                 throw new Exception("Error deleting user");
             }
-            return user; //return the user to mediator services.
+            return post; //return the user to mediator services.
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Doiman
         public string Title { get; set; }
         public string Image { get; set; }
         public  DateTimeOffset Creationdate { get; set; }
+        public User User { get; set; }//ira criar um relaciomento entre as tabelas
         
     }
 }

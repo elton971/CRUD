@@ -29,15 +29,15 @@ public class UpdateUser
         
         public async Task<User> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(user=>user.Id==request.Id);
+            var user = await _context.Users.FirstOrDefaultAsync(user=>int.Parse(user.Id)==request.Id);
 
             if (user==null)
             {
                 throw new Exception("User not found");
             }
             
-            user.Name = request.Name;
-            user.Username = request.Username;
+            user.Fullname = request.Name;
+            user.UserName = request.Username;
             //_context.Entry<>
             await _context.SaveChangesAsync();
             

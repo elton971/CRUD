@@ -1,3 +1,4 @@
+using Aplication.DTO;
 using Application.Users;
 using Doiman;
 using MediatR;
@@ -15,13 +16,13 @@ public class UserController:BaseApiController
     }
 
     [HttpPost]
-    public async Task<ActionResult<User>> CreateUser(CreateUser.CreateUserCommand command)
+    public async Task<ActionResult<UserDTO>> CreateUser(CreateUser.CreateUserCommand command)
     {
         return await _mediator.Send(command);
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<User>>> GetUser()
+    public async Task<ActionResult<List<UserDTO>>> GetUser()
     {
         return await _mediator.Send(new ListUser.ListUserQuery());
     }
