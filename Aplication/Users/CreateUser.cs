@@ -1,29 +1,37 @@
+using Aplication.Dtos;
+using AutoMapper;
 using Doiman;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
-namespace Application.Users;
+namespace Aplication.Users;
 
 public class CreateUser
 {
-    public class CreateUserCommand: IRequest<User>
+    public class CreateUserCommand: IRequest<UserDto>
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public String Username { get; set; }
+        public String Email { get; set; }
         public string Password { get; set; }
+        
 
     }
     
-    public class CreateUserHandler: IRequestHandler<CreateUserCommand,User>
+    public class CreateUserHandler: IRequestHandler<CreateUserCommand,UserDto>
     {
         private readonly DataContext _context;
+        private readonly UserManager<User> _userManager;
+        private readonly IMapper _mapper;
 
-        public CreateUserHandler(DataContext context)
+        public CreateUserHandler(DataContext context, UserManager<User> userManager, IMapper mapper)
         {
             _context = context;
+            _userManager = userManager;
+            _mapper = mapper;
         }
         
         public class  CreateUserValidator: AbstractValidator<CreateUserCommand>
@@ -38,7 +46,7 @@ public class CreateUser
             }
         }
         
-        public async Task<User> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var validator = await _context.Users.FirstOrDefaultAsync(user=>user.Username==request.Username,cancellationToken);
 
@@ -51,20 +59,18 @@ public class CreateUser
             {
                 Name = request.Name,
                 Username = request.Username,
-                Password = request.Password
+                // Email = request.Email
             };
 
-            await _context.Users.AddAsync(user);
+            var result = await _userManager.CreateAsync(user, request.Password);
             
-            var result=await _context.SaveChangesAsync(cancellationToken)<0;
-
-            if (result)
+            if (result.Succeeded)
             {
-                throw new Exception("Error creating user");
+                return _mapper.Map<User, UserDto>(user);
             }
 
-            return user;
-
+            throw new Exception(result.Errors.ToString());
+            
         }
     }
 

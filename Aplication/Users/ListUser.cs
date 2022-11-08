@@ -1,19 +1,19 @@
-using Doiman;
+using Aplication.Dtos;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
-namespace Application.Users;
+namespace Aplication.Users;
 
 public class ListUser
 {
-    public class ListUserQuery:IRequest<List<User>>
+    public class ListUserQuery:IRequest<List<UserDto>>
     {
         
     }
    
     
-    public class ListUserQueryHandler: IRequestHandler<ListUserQuery,List<User>>
+    public class ListUserQueryHandler: IRequestHandler<ListUserQuery,List<UserDto>>
     {
         private readonly DataContext _context;
 
@@ -22,9 +22,24 @@ public class ListUser
             _context = context;
         }
         
-        public async Task<List<User>> Handle(ListUserQuery request, CancellationToken cancellationToken)
+        public async Task<List<UserDto>> Handle(ListUserQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Users.ToListAsync(cancellationToken);
+            var users = await _context.Users.ToListAsync(cancellationToken);
+
+            var usersListDto = users.Select(user => new UserDto { Id = user.Id, Name = user.Name }).ToList();
+            
+            /*
+             users.ForEach(user =>
+            {
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    Name = user.Name
+                };
+                usersListDto.Add(userDto);
+            });
+            */
+            return usersListDto;
         }
     }
 }

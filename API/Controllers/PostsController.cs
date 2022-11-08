@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Aplication.Dtos;
 using Aplication.Posts;
 using Doiman;
 using MediatR;
@@ -17,14 +18,14 @@ namespace API.Controllers
 
         //estamos a criar o andpoint para post
         [HttpPost]
-        public async Task<ActionResult<Post>> CreatePosts(CreatePost.CreatePostCommand command)
+        public async Task<ActionResult<PostDto>> CreatePosts(CreatePost.CreatePostCommand command)
         {
            return  await _mediator.Send(command);//retorna um objecto com todos os posts
         }
         
         //and point para listar as posts
         [HttpGet]
-        public async Task<ActionResult<List<Post>>> GetAllPost()
+        public async Task<ActionResult<List<PostDto>>> GetAllPost()
         {
             //ira buscar a informacao a base de dados
             return await _mediator.Send(new ListPosts.ListPostsQuery());
@@ -38,6 +39,12 @@ namespace API.Controllers
             //ira buscar a informacao a base de dados
             return await _mediator.Send(new ListPostId.ListPostIdQuery{Id=id});
         }
-        
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<Post>> UpdatePost(UpdatePost.UpdatePostCommand command, int id)
+        {
+            command.Id = id;
+            return await _mediator.Send(command);
+        }
     }
 }
