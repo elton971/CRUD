@@ -1,7 +1,9 @@
+﻿using System.Net;
 using Aplication.Dtos;
+using Aplication.Errors;
+using Aplication.Posts;
 using AutoMapper;
 using Doiman;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,69 +13,55 @@ namespace Aplication.Users;
 
 public class CreateUser
 {
-    public class CreateUserCommand: IRequest<UserDto>
-    {
-        public string Name { get; set; }
-        public String Username { get; set; }
-        public String Email { get; set; }
-        public string Password { get; set; }
-        
-
-    }
-    
-    public class CreateUserHandler: IRequestHandler<CreateUserCommand,UserDto>
-    {
-        private readonly DataContext _context;
-        private readonly UserManager<User> _userManager;
-        private readonly IMapper _mapper;
-
-        public CreateUserHandler(DataContext context, UserManager<User> userManager, IMapper mapper)
+     //recebe os dados que vem do mediator na classe PostController
+        public class CreateUserCommand :IRequest<UserDto>
         {
-            _context = context;
-            _userManager = userManager;
-            _mapper = mapper;
-        }
-        
-        public class  CreateUserValidator: AbstractValidator<CreateUserCommand>
-        {
-            public CreateUserValidator()
-            {
-                RuleFor(x=>x.Name).NotEmpty();
-                RuleFor(x=>x.Username).NotEmpty();
-                RuleFor(x=>x.Password).NotEmpty();
-                
-                
-            }
-        }
-        
-        public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
-        {
-            var validator = await _context.Users.FirstOrDefaultAsync(user=>user.Username==request.Username,cancellationToken);
-
-            if (validator!=null)
-            {
-                throw new Exception("User exists");
-            }
-
-            var user = new User()
-            {
-                Name = request.Name,
-                Username = request.Username,
-                // Email = request.Email
-            };
-
-            var result = await _userManager.CreateAsync(user, request.Password);
+            //os dados que eu quero armazenar
+            public string Email { get; set; }
+            public string FullName { get; set; }
+            public string Password { get; set; }
+            public string PhoneNumber { get; set; }
+            public string UserName { get; set; }
             
-            if (result.Succeeded)
-            {
-                return _mapper.Map<User, UserDto>(user);
-            }
-
-            throw new Exception(result.Errors.ToString());
             
         }
-    }
+        
 
-    
-    
+        //onde teremos a logica toda da criacao de um post
+        public  class CreateUserCommandHandler :IRequestHandler<CreateUser.CreateUserCommand,UserDto>
+        {
+            private readonly DataContext _context;
+            private readonly IMapper _mapper;
+            private readonly UserManager<User> _manager;
+
+            public CreateUserCommandHandler(DataContext context, IMapper mapper,UserManager<User> manager)
+            {
+                _context = context;
+                _mapper = mapper;
+                _manager = manager;
+            }
+            public async Task<UserDto> Handle(CreateUser.CreateUserCommand request, CancellationToken cancellationToken)
+            {
+                
+                var user = new User()
+                {
+                    FullName = request.FullName,
+                    Email = request.Email,
+                    UserName = request.UserName,
+                    PhoneNumber = request.PhoneNumber
+                };
+
+                var result = await _manager.CreateAsync(user, request.Password);
+              
+               if (result.Succeeded)
+               {
+                   return _mapper.Map<User, UserDto>(user);
+                   
+               }
+               throw new RestException(HttpStatusCode.Conflict,result.Errors);
+              
+             
+              
+            }
+        }
 }

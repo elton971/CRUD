@@ -1,3 +1,7 @@
+using System.Net;
+using Aplication.Dtos;
+using Aplication.Errors;
+using AutoMapper;
 using Doiman;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,27 +11,29 @@ namespace Aplication.Posts;
 
 public class UpdatePost
 {
-    public class UpdatePostCommand: IRequest<Post>
+    public class UpdatePostCommand: IRequest<PostDto>
     {
         public int Id { get; set; }
         public string Title { get; set; }
         public string Image { get; set; }
     }
-    public class UpdatePostHandler: IRequestHandler<UpdatePostCommand, Post>
+    public class UpdatePostHandler: IRequestHandler<UpdatePostCommand, PostDto>
     {
         private readonly DataContext _context;
+        private readonly IMapper _mapper;
 
-        public UpdatePostHandler(DataContext context)
+        public UpdatePostHandler(DataContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
-        public async Task<Post> Handle(UpdatePostCommand request, CancellationToken cancellationToken)
+        public async Task<PostDto> Handle(UpdatePostCommand request, CancellationToken cancellationToken)
         {
             var post = await _context.Post.FirstOrDefaultAsync(x => x.Id == request.Id);
 
             if (post is null)
             {
-                throw new Exception("Post Not Found");
+                throw new RestException(HttpStatusCode.Conflict,"Error, Post doens exist!!");
             }
 
             post.Image = request.Image;
@@ -41,7 +47,7 @@ public class UpdatePost
                 throw new Exception("An Error Occurred while updating");
             }
 
-            return post;
+            return _mapper.Map<PostDto>(post);
         }
     }
 }

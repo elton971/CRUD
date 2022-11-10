@@ -1,37 +1,39 @@
+﻿using Aplication.Dtos;
+using AutoMapper;
 using Doiman;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Persistence;
+using Microsoft.AspNetCore.Identity;
 
-namespace Application.Users;
+namespace Aplication.Users;
 
 public class ListUserById
 {
-    
-    public class ListUserByIdQuery: IRequest<User>
+    public class ListUserByIdQuery : IRequest<UserDto>
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
     }
-    
-    public class  ListUserByIdQueryHandler:IRequestHandler<ListUserByIdQuery,User>
-    {
-        private readonly DataContext _context;
 
-        public ListUserByIdQueryHandler(DataContext context)
+    public class ListUserByIdHandler : IRequestHandler<ListUserByIdQuery, UserDto>
+    {
+        private readonly IMapper _mapper;
+        private readonly UserManager<User> _manager;
+
+        public ListUserByIdHandler(IMapper mapper, UserManager<User> manager)
         {
-            _context = context;
+            _mapper = mapper;
+            _manager = manager;
         }
-        
-        public async Task<User> Handle(ListUserByIdQuery request, CancellationToken cancellationToken)
+
+        public  async Task<UserDto> Handle(ListUserByIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(user => user.Id==request.Id );
-            if (user==null)
+            var user= await _manager.FindByIdAsync(request.Id);
+            if (user is null)
             {
-                throw new Exception("user not found");
+                throw new Exception("User not found");
             }
-            return user;
+            return _mapper.Map<UserDto>(user);
+            
+            
         }
-        
-        
     }
 }

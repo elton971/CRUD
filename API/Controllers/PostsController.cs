@@ -34,14 +34,14 @@ namespace API.Controllers
         
         //andPoint para buscar um post de acordo com ID
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Post>> GetPostById(int id)
+        public async Task<ActionResult<PostDto>> GetPostById(int id)
         {
             //ira buscar a informacao a base de dados
             return await _mediator.Send(new ListPostId.ListPostIdQuery{Id=id});
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Post>> UpdatePost(UpdatePost.UpdatePostCommand command, int id)
+        public async Task<ActionResult<PostDto>> UpdatePost(UpdatePost.UpdatePostCommand command, int id)
         {
             command.Id = id;
             return await _mediator.Send(command);
