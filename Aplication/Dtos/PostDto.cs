@@ -7,5 +7,6 @@ public class PostDto
     public string Image { get; set; }
     public  DateTimeOffset Creationdate { get; set; }
     public string UserName { get; set; }
-    public string Description { get; set; }
+    public string Content { get; set; }
+    
 }

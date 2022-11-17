@@ -2,33 +2,29 @@
 using Aplication.Users;
 using Doiman;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
-public class UserController:BaseApiController
+public class UsersController:BaseApiController
 {
     private readonly IMediator _mediator;
 
-    public UserController(IMediator mediator)
+    public UsersController(IMediator mediator)
     {
         _mediator = mediator;
     }
-        
-    [HttpPost]
-    public async Task<ActionResult<UserDto>> CreatePosts(CreateUser.CreateUserCommand command)
-    {
-        return  await _mediator.Send(command);//retorna um objecto com todos os posts
-    }
+     
         
     //and point para listar as posts
     [HttpGet]
+    
     public async Task<ActionResult<List<UserDto>>> GetAllUser()
     {
         //ira buscar a informacao a base de dados
         return await _mediator.Send(new ListUsers.ListUsersQuery());
     }
-
     //this method return one user.
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUserById()
@@ -40,6 +36,14 @@ public class UserController:BaseApiController
     public async Task<List<string>> GetUserNames()
     {
         return await _mediator.Send(new UserNameList.UserNameListQuery());
+    }
+   
+   
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<ActionResult<UserDto>> CreateUsers(CreateUser.CreateUserCommand command)
+    {
+        return  await _mediator.Send(command);//retorna um objecto com todos os posts
     }
 
 

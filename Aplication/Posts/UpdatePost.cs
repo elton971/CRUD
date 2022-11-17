@@ -16,6 +16,8 @@ public class UpdatePost
         public int Id { get; set; }
         public string Title { get; set; }
         public string Image { get; set; }
+        
+        public string Content { get; set; }
     }
     public class UpdatePostHandler: IRequestHandler<UpdatePostCommand, PostDto>
     {
@@ -38,6 +40,7 @@ public class UpdatePost
 
             post.Image = request.Image;
             post.Title = request.Title;
+            post.Content = request.Content;
 
             _context.Post.Update(post);
             

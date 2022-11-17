@@ -10,5 +10,6 @@ namespace Doiman
         public string Image { get; set; }
         public  DateTimeOffset Creationdate { get; set; }
         public User User { get; set; }
+        public string Content { get; set; }
     }
 }

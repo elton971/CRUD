@@ -3,10 +3,12 @@
 using System.Net;
 using Aplication.Dtos;
 using Aplication.Errors;
+using Aplication.Interfaces;
 using AutoMapper;
 using Doiman;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
@@ -21,7 +23,10 @@ namespace Aplication.Posts
             public string Title { get; set; }
             public string Image { get; set; }
             public DateTimeOffset CreationDate { get; set; } = DateTimeOffset.Now;//inicializo com a data atual
-            public int UserId { get; set; }
+            public string UserId { get; set; }
+            public string Content { get; set; }
+            
+            
         }
 
         //classe para validarmos os dados que vem do da Classe CreatePostcommand
@@ -40,20 +45,30 @@ namespace Aplication.Posts
         {
             private readonly DataContext _context;
             private readonly IMapper _mapper;
+            private readonly IPostRepository _postRepository;
+            private readonly UserManager<User> _userManager;
+            
 
-            public CreatePostCommandHandle(DataContext context, IMapper mapper)
+            public CreatePostCommandHandle(DataContext context, IMapper mapper,IPostRepository postRepository,UserManager<User> userManager)
             {
                 _context = context;
                 _mapper = mapper;
+                _postRepository = postRepository;
+                _userManager=userManager;
             }
             public async Task<PostDto> Handle(CreatePostCommand request, CancellationToken cancellationToken)
             {
                 //validacao dos dados
                 var postFound=await _context.Post.FirstOrDefaultAsync(post1 => post1.Title == request.Title);//se nao existe vai retornar null
-
+                var user = await _userManager.FindByIdAsync(request.UserId);
                 if (postFound != null)
                 {
                     throw new RestException(HttpStatusCode.Conflict,"Error, This post already exist, change the title");
+                }
+
+                if (user == null)
+                {
+                    throw new RestException(HttpStatusCode.Conflict,"Error, This user don't exist");
                 }
                 
                 
@@ -62,20 +77,19 @@ namespace Aplication.Posts
                     Creationdate = request.CreationDate,
                     Image = request.Image,
                     Title = request.Title,
-                };
+                    Content = request.Content,
+                    User = user
+                }; 
                 
-                //add os dados na base de dados.
-               await  _context.Post.AddAsync(post, cancellationToken);
+                _postRepository.Add(post);
+                var result = await _postRepository.Complete()<0;
+                if (result)
+                {
+                    throw new Exception("AN ERROR OCCURRED");
+                }
+                return _mapper.Map<Post, PostDto>(post);
                
-               //faz commit, para salvar as alteracoes
-               int result = await _context.SaveChangesAsync(cancellationToken) ;//vai retornar um valor int
-               if (result<0)
-               {
-                   throw new Exception("AN ERROR OCCURRED");
-               }
 
-               return _mapper.Map<Post, PostDto>(post);
-                //retorna esse post para o mediator na classe PostsController
             }
         }
         

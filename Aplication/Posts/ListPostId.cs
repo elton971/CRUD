@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Aplication.Dtos;
 using Aplication.Errors;
+using Aplication.Interfaces;
 using AutoMapper;
 using Doiman;
 using MediatR;
@@ -21,20 +22,18 @@ public class ListPostId
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
+        private readonly IPostRepository _postRepository;
 
-        public ListPostByIdHandler(DataContext context, IMapper mapper)
+        public ListPostByIdHandler(DataContext context, IMapper mapper, IPostRepository postRepository)
         {
             _context = context;
             _mapper = mapper;
+            _postRepository = postRepository;
         }
 
         public async Task<PostDto> Handle(ListPostIdQuery request, CancellationToken cancellationToken)
         {
-            //validacao dos dados
-            var post =
-                await _context.Post.FirstOrDefaultAsync(post1 =>
-                    post1.Id == request.Id); //se nao existe vai retornar null
-
+            var post =  _postRepository.ListById(request.Id);
             if (post == null)
             {
                 throw new RestException(HttpStatusCode.Conflict,"Error, Post doens exist!!");

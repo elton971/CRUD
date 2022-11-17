@@ -4,6 +4,7 @@ using Aplication.Errors;
 using Aplication.Posts;
 using AutoMapper;
 using Doiman;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,9 +26,20 @@ public class CreateUser
             
             
         }
-        
 
-        //onde teremos a logica toda da criacao de um post
+        public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
+        {
+            public CreateUserCommandValidator()
+            {
+                RuleFor(x => x.UserName).NotEmpty();
+                RuleFor(x => x.Email).NotEmpty().EmailAddress();
+                RuleFor(x => x.Password).NotEmpty().NotNull();
+                
+            }
+                
+        }
+
+            //onde teremos a logica toda da criacao de um post
         public  class CreateUserCommandHandler :IRequestHandler<CreateUser.CreateUserCommand,UserDto>
         {
             private readonly DataContext _context;

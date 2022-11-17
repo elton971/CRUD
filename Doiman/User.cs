@@ -54,3 +54,8 @@ namespace Doiman
 
 
 //Mildlewares-é onde vamos colocar todas as informacoes de erro
+
+//JWT-vai funcionar para a auteticacao.
+//Microsoft.AspNetCore.Authentication.JwtBearer-instalamos na versoa de API-x
+//System.IdentityModel.Tokens.Jwt-responsavel pela verificacao de token camada de infra
+//Microsoft.IdentityModel.Tokens-camada de infras..
