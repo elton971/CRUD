@@ -10,6 +10,7 @@ public static  class ApplicationServiceExtensions
         services.AddScoped<IUserNameList, UserList>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPostRepository, PostRepository>();
+        services.AddScoped<IUserAcessor, UserAcessor>();
         return services;
     }
 }

@@ -22,8 +22,6 @@ namespace Aplication.Posts
             //os dados que eu quero armazenar
             public string Title { get; set; }
             public string Image { get; set; }
-            public DateTimeOffset CreationDate { get; set; } = DateTimeOffset.Now;//inicializo com a data atual
-            public string UserId { get; set; }
             public string Content { get; set; }
             
             
@@ -47,20 +45,23 @@ namespace Aplication.Posts
             private readonly IMapper _mapper;
             private readonly IPostRepository _postRepository;
             private readonly UserManager<User> _userManager;
-            
+            private readonly IUserAcessor _userAcessor;
 
-            public CreatePostCommandHandle(DataContext context, IMapper mapper,IPostRepository postRepository,UserManager<User> userManager)
+
+            public CreatePostCommandHandle(DataContext context, IMapper mapper,IPostRepository postRepository,UserManager<User> userManager,
+                IUserAcessor userAcessor)
             {
                 _context = context;
                 _mapper = mapper;
                 _postRepository = postRepository;
                 _userManager=userManager;
+                _userAcessor = userAcessor;
             }
             public async Task<PostDto> Handle(CreatePostCommand request, CancellationToken cancellationToken)
             {
                 //validacao dos dados
                 var postFound=await _context.Post.FirstOrDefaultAsync(post1 => post1.Title == request.Title);//se nao existe vai retornar null
-                var user = await _userManager.FindByIdAsync(request.UserId);
+                var user = await _userManager.FindByIdAsync(_userAcessor.GetCurrentUserId());
                 if (postFound != null)
                 {
                     throw new RestException(HttpStatusCode.Conflict,"Error, This post already exist, change the title");
@@ -74,7 +75,7 @@ namespace Aplication.Posts
                 
                 var post = new Post()
                 {
-                    Creationdate = request.CreationDate,
+                    Creationdate = DateTime.UtcNow,
                     Image = request.Image,
                     Title = request.Title,
                     Content = request.Content,

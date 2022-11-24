@@ -36,7 +36,7 @@ namespace API.Controllers
         
         //estamos a criar o andpoint para post
         [HttpPost]
-        [AllowAnonymous]
+
         public async Task<ActionResult<PostDto>> CreatePosts(CreatePost.CreatePostCommand command)
         {
            return  await _mediator.Send(command);//retorna um objecto com todos os posts

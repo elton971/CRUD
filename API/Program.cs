@@ -54,7 +54,7 @@ builder.Services.AddCors(options=>
 });
 
 var app = builder.Build();
-
+Load();
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
@@ -70,3 +70,11 @@ app.UseAuthorization();
 app.UseCors("MyCors");
 app.MapControllers();
 app.Run();
+
+
+void Load()
+{
+    using var scope = app.Services.CreateScope();
+    var userManager = scope.ServiceProvider.GetRequiredService <UserManager<User>>();
+    LoadSeeds.SeedAsync(userManager);
+}
